@@ -1,0 +1,16 @@
+Metadata-Version: 2.1
+Name: airdot
+Version: 0.5.0b0
+Summary: A code base for deploying ml api 
+Home-page: https://github.com/ChalamPVS/ml-deployer/tree/devel
+Author: Abhinav Singh
+Author-email: Abhinav Singh <abhinav035991@gmail.com>
+Project-URL: Homepage, https://github.com/ChalamPVS/ml-deployer/tree/devel
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3.8
+Requires-Python: >=3.7.0
+Description-Content-Type: text/markdown
+Provides-Extra: dev
+
+# ml-deployer-os
