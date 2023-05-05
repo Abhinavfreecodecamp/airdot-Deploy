@@ -30,6 +30,7 @@ class redis_helper:
     def set_user_function(self, id, deploy_dict, function_curl_req, object_refresh=False):
         user_function = self.get_key(id)
         if user_function is not None: # for a old deployment 
+            user_function = json.loads(user_function)
             user_function[deploy_dict['name']]['curl'] = function_curl_req
             user_function[deploy_dict['name']]['version'] = user_function[deploy_dict['name']]["version"] + 1 if not(object_refresh) else user_function[deploy_dict['name']]["version"]
             user_function[deploy_dict['name']]['dataFiles'][get_datetime()] = '' if deploy_dict['dataFiles'] is None else deploy_dict['dataFiles'] 

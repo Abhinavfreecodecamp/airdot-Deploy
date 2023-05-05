@@ -19,14 +19,22 @@ class docker_helper:
         except docker.errors.APIError as e:
             print(f"Error starting container: {e}")
 
-    def get_container_id(self, image_name):
+    def get_container(self, container_id):
         try:
-            container = self.client.containers.get(image_name)
+            container = self.client.containers.get(container_id)
             return container.id
         except docker.errors.NotFound:
-            print(f"Error: Container '{image_name}' not found")
+            print(f"Error: Container '{container_id}' not found")
         except docker.errors.APIError as e:
             print(f"Error getting container ID: {e}")
+    
+    def get_container_id(self, image_name):
+        container_id = None
+        containers = self.client.containers.list(all=True)
+        for container in containers:
+            if container.image.tags[0].split(':')[0] == image_name:
+                container_id = container.id
+        return container_id
     
     def kill_container(self, container_id):
         try:
@@ -62,10 +70,8 @@ class docker_helper:
         dir = self.write_user_file(deploy_dict['sourceFile'])
         custum_req = self.get_custom_requirements(deploy_dict['requirementsTxt'])
         success_flag = self.create_custom_docker_file(custum_req, dir)
-        print('flag 1')
         if success_flag:
             image, _ = self.client.images.build(path=f'/tmp/{dir}/', tag=f"{deploy_dict['name']}")
-            print('flag 2')
             return image, dir
         return None, None
 

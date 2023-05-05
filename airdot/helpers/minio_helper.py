@@ -3,41 +3,45 @@ from botocore.exceptions import ClientError
 
 class minio_helper:
     def __init__(self, endpoint, access_key=None, secret_key=None, secure=True):
-        self.client = boto3.client(
+        self.client = boto3.resource(
             's3',
-            endpoint_url=endpoint,
-            aws_access_key_id=access_key,
-            aws_secret_access_key=secret_key,
-            use_ssl=secure
+            endpoint_url='http://127.0.0.1:9000',
+            aws_access_key_id='5vx4aa4GTJcy5t9i',
+            aws_secret_access_key='7Xb54WeCZ1AvWrvMvZhekupQLPeYl2BA',
         )
-        
+    
+    def bucket_exists(self, bucket_name):
+        if self.client.Bucket(bucket_name) in self.client.buckets.all():
+            print(f'Bucket {bucket_name} exists.')
+            return True
+        else:
+            print(f'Bucket {bucket_name} does not exist.')
+            return False
+
     def create_bucket(self, bucket_name):
+        print(f'{bucket_name}')
         try:
-            bucket = self.client.Bucket(bucket_name)
-            if bucket.creation_date:
-                print(f"Bucket '{bucket_name}' already exists")
+            if not(self.bucket_exists(bucket_name=bucket_name)):
+                bucket = self.client.create_bucket(Bucket=bucket_name)
+                print(f'Bucket {bucket_name} created successfully.')
             else:
-                bucket.create()
-                print(f"Bucket '{bucket_name}' created successfully")
-        except ClientError as e:
-            print(f"Error creating bucket '{bucket_name}': {e}")
+                print('bucket already exists')
+        except Exception as e:
+            print(f'Error creating bucket {bucket_name}: {str(e)}')
     
     def delete_bucket(self, bucket_name):
         try:
-            bucket = self.client.Bucket(bucket_name)
-            bucket.objects.all().delete()
-            bucket.delete()
-            print(f"Bucket '{bucket_name}' deleted successfully")
-        except ClientError as e:
-            print(f"Error deleting bucket '{bucket_name}': {e}")
+            self.client.Bucket(bucket_name).delete()
+            print(f'Bucket {bucket_name} deleted successfully.')
+        except Exception as e:
+            print(f'Error deleting bucket {bucket_name}: {str(e)}')
     
     def put_object(self, bucket, key, data):
         try:
-            self.client.put_object(Bucket=bucket, Key=key, Body=data)
-            return True
-        except ClientError as e:
-            print(f"Error putting object '{key}' to MinIO: {e}")
-            return False
+            self.client.Object(bucket, key).put(Body=data)
+            print(f'Object {key} uploaded successfully.')
+        except Exception as e:
+            print(f'Error uploading object {key}: {str(e)}')
     
     def get_object(self, bucket, key):
         try:

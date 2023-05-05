@@ -42,7 +42,7 @@ class airdotDeployer:
     def __init__(
             self,
             minio_endpoint:str = 'http://127.0.0.1:9000',
-            redis_endpoint:str = 'http://127.0.0.1:6379',
+            redis_endpoint:str = 'localhost:6379',
             local_deployment = True
         ) -> None:
         self.docker_client = docker_helper()
@@ -102,7 +102,7 @@ class airdotDeployer:
             name = get_name(name)
             print("uploading data objects.")
             data_files = make_and_upload_data_files(
-                bucket_id=func_props.name, open_id=dir_id, pyState=func_props, endpoint=self.minio_endpoint
+                bucket_id=func_props.name.replace('_','-'), open_id=dir_id, pyState=func_props, endpoint=self.minio_endpoint
             )  # uploading of data objects.
         elif (
             hasattr(func, "__module__")
@@ -154,7 +154,7 @@ class airdotDeployer:
         try:
             self.image, _ = self.docker_client.create_docker_runtime(deploy_dict=self.deploy_dict)
             print('docker image build process successfully finished.')
-            self.container = self.docker_client.run_container(self.image, detach=True, ports={f'{port}/tcp': 8080})
+            self.container = self.docker_client.run_container(self.image, detach=True, ports={f'{8080}/tcp': port})
             return True
         except:
             return False
@@ -166,10 +166,10 @@ class airdotDeployer:
     def stop_deployment(self, image_name):
         try:
             container_id = self.docker_client.get_container_id(image_name=image_name)
-            container_status = self.docker_client.delete_container(container_id=container_id)
+            container_status = self.docker_client.kill_container(container_id=container_id)
             if container_status:
+                self.docker_client.delete_container(container_id=container_id)
                 print('deployment killed successfully')
-            shutil.rmtree(f'/tmp/{self.dir}',ignore_errors=True)
         except APIError as e:
             print(f'{e}')
     
@@ -210,6 +210,7 @@ class airdotDeployer:
             if self.local_deployment:
                 url = f'http://127.0.0.1:{port}'
                 function_curl = self.build_function_url(url=url)
+                print(function_curl)
                 self.update_redis(function_curl)
                 print('your function is live.')
         else:
@@ -226,7 +227,7 @@ class airdotDeployer:
                 nName = item[0]
                 nVal = item[1]
                 dataFiles[f"{nName}.pkl"] = uploadRuntimeObject(
-                    function_id, None, None, nVal, nName, endpoint=self.minio_endpoint
+                    function_id.replace('_', '-'), None, None, nVal, nName, endpoint=self.minio_endpoint
                 )
             json_dict = {
                 "data_files": dataFiles,
@@ -240,7 +241,7 @@ class airdotDeployer:
             nName = object[0]
             nVal = object[1]
             dataFiles[f"{nName}.pkl"] = uploadRuntimeObject(
-                function_id, None, None, nVal, nName
+                function_id.replace('_', '-'), None, None, nVal, nName
             )
             json_dict = {
                 "dataFiles": dataFiles,
@@ -288,30 +289,29 @@ class airdotDeployer:
             exit(1)
         url=url
         data_dict = {}
-        if len(self.deploy_dict["metadata"]["argNames"]) > 0:
-            for arg_name in self.deploy_dict["metadata"]["argNames"]:
+        if len(self.deploy_dict["argNames"]) > 0:
+            for arg_name in self.deploy_dict["argNames"]:
                 data_dict[arg_name] = "<value-for-argument>"
         curl = f"curl -XPOST {url} -H 'Content-Type: application/json' -d '{json.dumps(data_dict)}'  "
         return curl
 
-    def generate_arg_list(self):
+    def generate_arg_list(self, function_request):
         arg_list = []
-        if len(self.deploy_dict["metadata"]["argNames"]) > 0:
-            for arg_name in self.deploy_dict["metadata"]["argNames"]:
+        if len(function_request["metadata"]["argNames"]) > 0:
+            for arg_name in function_request["metadata"]["argNames"]:
                 arg_list.append(f"{arg_name}")
             arg_list = arg_list if len(arg_list) > 0 else ["None args defined"]
             return arg_list
 
-    def data_objects_list(self):
-        data_obj_keys = list(self.deploy_dict["dataFiles"].keys())
+    def data_objects_list(self, function_request):
+        data_obj_keys = list(function_request["dataFiles"].keys())
         data_objects_list = []
         for key in data_obj_keys:
-            if len(key.split("$")) > 1:
-                update_keys = list(self.deploy_dict["dataFiles"][key].keys())
-                for update_key in update_keys:
-                    data_objects_list.append(
-                        f"name {update_key.split('/')[1]} update time {key.replace('$', ' ')}"
-                    )
+            update_keys = list(function_request["dataFiles"][key].keys())
+            for update_key in update_keys:
+                data_objects_list.append(
+                    f"name {update_key} update time {key.replace('$', ' ')}"
+                )
         data_objects_list = (
             data_objects_list
             if len(data_objects_list) > 0
@@ -322,14 +322,12 @@ class airdotDeployer:
     def get_my_deployments(self):
         user_functions = self.redis_helper_obj.get_keys('*')
         if user_functions is not None:
-            json_value = json.loads(user_functions)
             keys = ["deployment-name", "args", "data-objects"]
-            function_names = list(json_value.keys())
+            function_names = [value.decode() for value in user_functions]
             for function_name in function_names:
                 table = []
-                curl_request = self.build_function_url(
-                    json_value[function_name]
-                )
+                json_value = json.loads(self.redis_helper_obj.get_key(function_name))
+                curl_request = json_value[function_name]['curl']
                 table.append(
                     [
                         function_name,

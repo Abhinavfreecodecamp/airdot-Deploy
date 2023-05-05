@@ -90,23 +90,23 @@ def toYaml(contentHash: str, fileSize: int, objDesc: Dict[str, Any]) -> str:
     yaml.add_representer(str, repr_str)
     return yaml.dump(obj, width=1000)
 
-def putSecureData(bucket_id, open_id, token, data: bytes, desc: str, endpoint:str):
+def putSecureData(bucket_id, open_id, data: bytes, desc: str, endpoint:str):
     try:
         minio_helper_obj = minio_helper(endpoint=endpoint)
         minio_helper_obj.create_bucket(bucket_name=bucket_id)
         minio_helper_obj.put_object(
             bucket=bucket_id,
-            key=f"{open_id}/{desc}.pkl",
+            key=f"{desc}.pkl",
             data=data
         )
         return True
     except Exception as e:
-        print("failed to upload data object. Please try again")
+        print(f"failed to upload data object. Please try again {e}")
         return False
 
 def uploadRuntimeObject(bucket_id, open_id, obj, desc: str, endpoint:str):
     (data, contentHash, objSize) = serializeZstd(obj)
-    response = putSecureData(bucket_id, open_id, data, desc)
+    response = putSecureData(bucket_id, open_id, data, desc, endpoint)
     if response:
         yamlObj = toYaml(contentHash, objSize, describeObject(obj, 1))
         return yamlObj  # need to think a way to save complete yamlObj
