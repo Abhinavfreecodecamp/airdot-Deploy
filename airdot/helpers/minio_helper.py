@@ -6,10 +6,10 @@ class minio_helper:
         self.client = boto3.resource(
             's3',
             endpoint_url='http://127.0.0.1:9000',
-            aws_access_key_id='5vx4aa4GTJcy5t9i',
-            aws_secret_access_key='7Xb54WeCZ1AvWrvMvZhekupQLPeYl2BA',
+            aws_access_key_id='minioadmin',
+            aws_secret_access_key='miniopassword',
         )
-    
+
     def bucket_exists(self, bucket_name):
         if self.client.Bucket(bucket_name) in self.client.buckets.all():
             print(f'Bucket {bucket_name} exists.')

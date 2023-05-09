@@ -53,6 +53,8 @@ class airdotDeployer:
             host=self.redis_endpoint.split(':')[0],
             port=self.redis_endpoint.split(':')[1]
             )
+        if local_deployment:
+            self.minio_network = 'minio-network'
 
         print("Welcome to airdot!")
 
@@ -154,7 +156,7 @@ class airdotDeployer:
         try:
             self.image, _ = self.docker_client.create_docker_runtime(deploy_dict=self.deploy_dict)
             print('docker image build process successfully finished.')
-            self.container = self.docker_client.run_container(self.image, detach=True, ports={f'{8080}/tcp': port})
+            self.container = self.docker_client.run_container(self.image, detach=True, ports={f'{8080}/tcp': port}, network=self.minio_network)
             return True
         except:
             return False
@@ -227,7 +229,7 @@ class airdotDeployer:
                 nName = item[0]
                 nVal = item[1]
                 dataFiles[f"{nName}.pkl"] = uploadRuntimeObject(
-                    function_id.replace('_', '-'), None, None, nVal, nName, endpoint=self.minio_endpoint
+                    function_id.replace('_', '-'), None, nVal, nName, endpoint=self.minio_endpoint
                 )
             json_dict = {
                 "data_files": dataFiles,
@@ -241,7 +243,7 @@ class airdotDeployer:
             nName = object[0]
             nVal = object[1]
             dataFiles[f"{nName}.pkl"] = uploadRuntimeObject(
-                function_id.replace('_', '-'), None, None, nVal, nName
+                function_id.replace('_', '-'), None, nVal, nName,  endpoint=self.minio_endpoint
             )
             json_dict = {
                 "dataFiles": dataFiles,
