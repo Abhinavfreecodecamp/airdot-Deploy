@@ -4,15 +4,15 @@ import random
 import docker
 from airdot.helpers.template_helpers import get_docker_template
 
-DEFAULT_PKG_LIST = ['Flask', 'gunicorn']
+DEFAULT_PKG_LIST = ['Flask', 'gunicorn', 'boto3']
 
 class docker_helper:
     def __init__(self):
         self.client = docker.from_env()
     
-    def run_container(self, image_name, command=None, detach=True, remove=True, ports=None):
+    def run_container(self, image_name, command=None, detach=True, remove=True, ports=None, network=None):
         try:
-            container = self.client.containers.run(image_name, command, detach=detach, remove=remove, ports=ports)
+            container = self.client.containers.run(image_name, command, detach=detach, remove=remove, ports=ports, network=network)
             return container
         except docker.errors.ImageNotFound:
             print(f"Error: Image '{image_name}' not found")

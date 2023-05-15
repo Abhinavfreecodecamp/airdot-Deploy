@@ -12,5 +12,3 @@ Classifier: Programming Language :: Python :: 3.8
 Requires-Python: >=3.7.0
 Description-Content-Type: text/markdown
 Provides-Extra: dev
-
-# ml-deployer-os

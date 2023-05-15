@@ -12,6 +12,7 @@ def make_soruce_file(
         "import sys",
         "from flask import escape, jsonify, Flask, request",
         "import pickle",
+        "import boto3",
         "app = Flask('ml-deployer')"
     ]
     if pyProps.namespaceFroms:
@@ -24,12 +25,11 @@ def make_soruce_file(
             else:
                 sourceParts.append(f"import {iModule} as {iAs}")
     add_space(sourceParts)
-    # sourceParts.append("storage_client = storage.Client()")
-    # sourceParts.append("bucket = storage_client.bucket('model-ml-deployer')")
+    sourceParts.append("client = boto3.resource('s3', endpoint_url='http://airdot-minio-1:9000', aws_access_key_id='minioadmin',aws_secret_access_key='miniopassword')")
+    sourceParts.append(f"bucket = client.Bucket('{pyProps.name.replace('_','-')}')")
     if pyProps.namespaceVars and pyProps.namespaceVarsDesc:
         for nName, _ in pyProps.namespaceVars.items():
-            sourceParts.append(f"blob = bucket.blob('{dir}/{nName}.pkl')")
-            sourceParts.append(f"{nName} =  pickle.loads(blob.download_as_string())")
+            sourceParts.append(f"{nName} = pickle.loads(bucket.Object('{nName}.pkl').get()['Body'].read())")
     if pyProps.customInitCode:
         sourceParts.append("\n" + "\n\n".join(pyProps.customInitCode))
     add_space(sourceParts)

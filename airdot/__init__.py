@@ -6,6 +6,6 @@ VERIFY = True
 # VERIFY = False
 
 
-from airdot.deployer import airdotDeployer
+from airdot.deployer import Deployer
 
-__all__ = ["airdotDeployer"]
+__all__ = ["Deployer"]
