@@ -38,7 +38,7 @@ log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 logging.basicConfig(level=logging.INFO, format=log_fmt)
 
 
-class airdotDeployer:
+class Deployer:
     def __init__(
             self,
             minio_endpoint:str = 'http://127.0.0.1:9000',
@@ -55,8 +55,6 @@ class airdotDeployer:
             )
         if local_deployment:
             self.minio_network = 'minio-network'
-
-        print("Welcome to airdot!")
 
     def _perform_user_login(self):
         login_uri = user_login(auth_=auth_)
@@ -102,7 +100,6 @@ class airdotDeployer:
                 env_python_packages = env_python_packages + python_packages
             func_props = get_function_properties(func, env_python_packages)
             name = get_name(name)
-            print("uploading data objects.")
             data_files = make_and_upload_data_files(
                 bucket_id=func_props.name.replace('_','-'), open_id=dir_id, pyState=func_props, endpoint=self.minio_endpoint
             )  # uploading of data objects.
@@ -155,17 +152,18 @@ class airdotDeployer:
     def _run_function(self, port):
         try:
             self.image, _ = self.docker_client.create_docker_runtime(deploy_dict=self.deploy_dict)
-            print('docker image build process successfully finished.')
+            image_name = self.deploy_dict['name']
+            print(f'docker image {image_name} successfully built')
             self.container = self.docker_client.run_container(self.image, detach=True, ports={f'{8080}/tcp': port}, network=self.minio_network)
             return True
         except:
             return False
     
-    def restart_deployment(self, function_id):
+    def restart(self, function_id):
         container_id = self.docker_client.get_container_id(function_id)
         self.docker_client.restart_container(container_id=container_id)
         
-    def stop_deployment(self, image_name):
+    def stop(self, image_name):
         try:
             container_id = self.docker_client.get_container_id(image_name=image_name)
             container_status = self.docker_client.kill_container(container_id=container_id)
@@ -183,7 +181,7 @@ class airdotDeployer:
             object_refresh=object_refresh
         )
 
-    def start_deployment(
+    def run(
         self,
         func: Callable,
         name: Optional[str] = None,
@@ -192,6 +190,7 @@ class airdotDeployer:
         system_packages: Optional[List[str]] = None,
     ):
 
+        print('deployment started')
         self.deploy_dict = self.build_deployment(
             func=func,
             name=name,
@@ -200,10 +199,10 @@ class airdotDeployer:
             system_packages=system_packages,
         )
         # prepare docker environment
-        print(f"Deploying {self.deploy_dict['name']} it may take couple of minutes")
+        #print(f"Deploying {self.deploy_dict['name']} it may take couple of minutes")
         if self.local_deployment:
             port = find_available_port(8000)
-            print(f'hosting container at port: {port}')
+            print(f'deploying on port: {port}')
             function_status = self._run_function(port)
         else:
             pass
@@ -212,13 +211,13 @@ class airdotDeployer:
             if self.local_deployment:
                 url = f'http://127.0.0.1:{port}'
                 function_curl = self.build_function_url(url=url)
+                print('deployment ready, access using the curl command below')
                 print(function_curl)
                 self.update_redis(function_curl)
-                print('your function is live.')
         else:
             print('failed to run function. Please try again.')
 
-    def _update_objects(self, object, function_id):
+    def update_objects(self, object, function_id):
         dataFiles: Dict[str, str] = {}
         if (
             isinstance(object, list)
@@ -236,7 +235,7 @@ class airdotDeployer:
                 "function_id": function_id,
                 "auth_session_token": auth_.refresh_token,
                 }
-            status = self.restart_deployment(function_id)
+            status = self.restart(function_id)
             if status is not None:
                 return status
         elif isinstance(object, tuple):
@@ -250,14 +249,11 @@ class airdotDeployer:
                 "name": function_id,
                 "auth_session_token": auth_.refresh_token,
             }
-            status = self.restart_deployment(function_id)
+            status = self.restart(function_id)
             if status is not None:
                 return status
         else:
             print("Please pass object tuple or list of tuples")
-
-    def refresh_objects(self, object, function_id):
-        self._update_objects(object, function_id)
 
     def _check_function_status(self, deploy_dict):
         payload = {
@@ -321,7 +317,7 @@ class airdotDeployer:
         )
         return data_objects_list
 
-    def get_my_deployments(self):
+    def list_deployments(self):
         user_functions = self.redis_helper_obj.get_keys('*')
         if user_functions is not None:
             keys = ["deployment-name", "args", "data-objects"]

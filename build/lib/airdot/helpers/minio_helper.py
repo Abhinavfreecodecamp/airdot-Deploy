@@ -12,34 +12,34 @@ class minio_helper:
 
     def bucket_exists(self, bucket_name):
         if self.client.Bucket(bucket_name) in self.client.buckets.all():
-            print(f'Bucket {bucket_name} exists.')
+            #print(f'Bucket {bucket_name} exists.')
             return True
         else:
-            print(f'Bucket {bucket_name} does not exist.')
+            #print(f'Bucket {bucket_name} does not exist.')
             return False
 
     def create_bucket(self, bucket_name):
-        print(f'{bucket_name}')
         try:
             if not(self.bucket_exists(bucket_name=bucket_name)):
                 bucket = self.client.create_bucket(Bucket=bucket_name)
-                print(f'Bucket {bucket_name} created successfully.')
+                #print(f'Bucket {bucket_name} created successfully.')
             else:
-                print('bucket already exists')
+                pass
+                #print('bucket already exists')
         except Exception as e:
             print(f'Error creating bucket {bucket_name}: {str(e)}')
     
     def delete_bucket(self, bucket_name):
         try:
             self.client.Bucket(bucket_name).delete()
-            print(f'Bucket {bucket_name} deleted successfully.')
+            #print(f'Bucket {bucket_name} deleted successfully.')
         except Exception as e:
             print(f'Error deleting bucket {bucket_name}: {str(e)}')
     
     def put_object(self, bucket, key, data):
         try:
             self.client.Object(bucket, key).put(Body=data)
-            print(f'Object {key} uploaded successfully.')
+            print(f'{key} uploaded successfully and available at {bucket}/{key}')
         except Exception as e:
             print(f'Error uploading object {key}: {str(e)}')
     
@@ -48,5 +48,5 @@ class minio_helper:
             response = self.client.get_object(Bucket=bucket, Key=key)
             return response['Body'].read()
         except ClientError as e:
-            print(f"Error getting object '{key}' from MinIO: {e}")
+            #print(f"Error getting object '{key}' from MinIO: {e}")
             return None
