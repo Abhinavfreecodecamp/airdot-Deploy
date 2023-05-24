@@ -8,16 +8,16 @@ REQUIRES_PYTHON = ">=3.7.0"
 REQUIRED = [
     "black == 22.6.0",
     "pytest == 7.1.2",
-    "typer == 0.6.0",
-    "PyYAML == 5.4.1",
-    "google-api-python-client == 2.72.0",
+    "PyYAML == 5.4",
+    "google-api-python-client == 2.78.0",
     "google-cloud-core == 2.3.2",
     "google-cloud-storage == 2.7.0",
     "zstd == 1.5.2.6",
     "boto == 2.49.0",
     "botocore == 1.29.127",
-    "boto3 == 1.26"
-
+    "boto3 == 1.26",
+    "docker == 6.1.2",
+    "redis == 4.5.5",
 ]
 DEV_REQUIRED = [
     "black >= 22.6.0",
@@ -29,7 +29,7 @@ DEV_REQUIRED = [
 
 setup(
     name="airdot",
-    url="https://github.com/ChalamPVS/ml-deployer/tree/devel",
+    url="https://github.com/Abhinavfreecodecamp/ml-deployer-os",
     author="Abhinav Singh",
     author_email="abhhinav035991@gmail.com",
     packages=find_packages(),

@@ -9,26 +9,26 @@ class namespace:
         self.vars: Dict[str, Any] = {}
         self.imports: Dict[str, str] = {}
         self.froms: Dict[str, str] = {"*": "typing"}
-        self.allModules: List[str] = []
-        self.customInitCode: List[str] = []
+        self.all_modules: List[str] = []
+        self.custom_init_code: List[str] = []
 
 
 class python_function_prop:
-    excludeFromDict: List[str] = ["errors"]
+    exclude_from_dict: List[str] = ["errors"]
 
     def __init__(self):
         self.source: Optional[str] = None
         self.name: Optional[str] = None
-        self.argNames: Optional[List[str]] = None
-        self.argTypes: Optional[Dict[str, str]] = None
-        self.namespaceVarsDesc: Optional[Dict[str, str]] = None
-        self.namespaceFunctions: Optional[Dict[str, str]] = None
-        self.namespaceImports: Optional[Dict[str, str]] = None
-        self.namespaceFroms: Optional[Dict[str, str]] = None
-        self.namespaceModules: Optional[List[str]] = None
+        self.arg_names: Optional[List[str]] = None
+        self.arg_types: Optional[Dict[str, str]] = None
+        self.namespace_vars_desc: Optional[Dict[str, str]] = None
+        self.namespace_functions: Optional[Dict[str, str]] = None
+        self.namespace_imports: Optional[Dict[str, str]] = None
+        self.namespace_froms: Optional[Dict[str, str]] = None
+        self.namespace_modules: Optional[List[str]] = None
         self.errors: Optional[List[str]] = None
-        self.namespaceVars: Optional[Dict[str, Any]] = None
-        self.customInitCode: Optional[List[str]] = None
+        self.namespace_vars: Optional[Dict[str, Any]] = None
+        self.custom_init_code: Optional[List[str]] = None
 
 
 class authentication:
@@ -42,5 +42,5 @@ class source_file_props:
         self.name = name
         self.contents = contents
 
-    def asDict(self):
+    def as_dict(self):
         return {"name": self.name, "contents": self.contents}

@@ -18,7 +18,6 @@ airdot/helpers/docker_helper.py
 airdot/helpers/gcs_helper.py
 airdot/helpers/general_helpers.py
 airdot/helpers/minio_helper.py
-airdot/helpers/model_helpers.py
 airdot/helpers/network_helper.py
 airdot/helpers/pkg_helpers.py
 airdot/helpers/redis_helper.py
