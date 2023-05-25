@@ -13,28 +13,32 @@ def make_soruce_file(
         "from flask import escape, jsonify, Flask, request",
         "import pickle",
         "import boto3",
-        "app = Flask('ml-deployer')"
+        "app = Flask('ml-deployer')",
     ]
-    if pyProps.namespaceFroms:
-        for iAs, iModule in pyProps.namespaceFroms.items():
+    if pyProps.namespace_froms:
+        for iAs, iModule in pyProps.namespace_froms.items():
             sourceParts.append(f"from {iModule} import {iAs}")
-    if pyProps.namespaceImports:
-        for iAs, iModule in pyProps.namespaceImports.items():
+    if pyProps.namespace_imports:
+        for iAs, iModule in pyProps.namespace_imports.items():
             if iModule == iAs:
                 sourceParts.append(f"import {iModule}")
             else:
                 sourceParts.append(f"import {iModule} as {iAs}")
     add_space(sourceParts)
-    sourceParts.append("client = boto3.resource('s3', endpoint_url='http://airdot-minio-1:9000', aws_access_key_id='minioadmin',aws_secret_access_key='miniopassword')")
+    sourceParts.append(
+        "client = boto3.resource('s3', endpoint_url='http://airdot-minio-1:9000', aws_access_key_id='minioadmin',aws_secret_access_key='miniopassword')"
+    )
     sourceParts.append(f"bucket = client.Bucket('{pyProps.name.replace('_','-')}')")
-    if pyProps.namespaceVars and pyProps.namespaceVarsDesc:
-        for nName, _ in pyProps.namespaceVars.items():
-            sourceParts.append(f"{nName} = pickle.loads(bucket.Object('{nName}.pkl').get()['Body'].read())")
-    if pyProps.customInitCode:
-        sourceParts.append("\n" + "\n\n".join(pyProps.customInitCode))
+    if pyProps.namespace_vars and pyProps.namespace_vars_desc:
+        for nName, _ in pyProps.namespace_vars.items():
+            sourceParts.append(
+                f"{nName} = pickle.loads(bucket.Object('{nName}.pkl').get()['Body'].read())"
+            )
+    if pyProps.custom_init_code:
+        sourceParts.append("\n" + "\n\n".join(pyProps.custom_init_code))
     add_space(sourceParts)
-    if pyProps.namespaceFunctions:
-        for _, fSource in pyProps.namespaceFunctions.items():
+    if pyProps.namespace_functions:
+        for _, fSource in pyProps.namespace_functions.items():
             sourceParts.append(fSource)
             add_space(sourceParts)
     add_space(sourceParts)
@@ -57,11 +61,11 @@ def make_soruce_file(
 
 def get_docker_template(req_string):
     dockerBuildParts: List[str] = [
-            "FROM python:3.8-slim",
-            "ENV APP_HOME /app",
-            "WORKDIR $APP_HOME",
-            "COPY . ./",
-            f"RUN pip install {req_string}",
-            "CMD exec gunicorn --bind :8080 --workers 1 --threads 8 app:app"
+        "FROM python:3.8-slim",
+        "ENV APP_HOME /app",
+        "WORKDIR $APP_HOME",
+        "COPY . ./",
+        f"RUN pip install {req_string}",
+        "CMD exec gunicorn --bind :8080 --workers 1 --threads 8 app:app",
     ]
     return dockerBuildParts

@@ -31,5 +31,6 @@ def in_notebook() -> bool:
 def get_difference(time):
     return (time - datetime.now()).seconds
 
+
 def get_datetime():
-    return datetime.now().strftime('%Y-%m-%d$%H:%M')
+    return datetime.now().strftime("%Y-%m-%d$%H:%M")
